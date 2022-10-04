@@ -16,8 +16,11 @@ void setup() {
 }
 
 void loop() {
-    digitalWrite(Water_Pump, HIGH);
-    delay(3*60*60*1000);            // Turns on every 3 hours
-    digitalWrite(Water_Pump, LOW);
-    delay(5*1000);                  // Turns on for 5 second 
+  digitalWrite(Water_Pump, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(5*1000);                  // Turns on for 5 second 
+  
+  digitalWrite(Water_Pump, LOW);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(threeHours);            // Turns on every 3 hours
 }
