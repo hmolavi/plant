@@ -2,7 +2,10 @@
 //
 //      Idea:   Turn the pump only when the moisture drops below a described level
 //              Show all the information through the 16x2 display
-
+//              Implement a data logging mechanism using the arduino shield
+//
+//      Goals:  Have the chip run 
+//
 
 // Libraries
 #include <millisDelay.h>
@@ -38,14 +41,15 @@ void TurnWaterOn(){
 }
 
 int Calculate_Moisture() {
-  /// Takes a mean average of moisture levels read from the sensor
-  ///
-
+  /// Takes a me average of moisture levels read from the sensor
+  
+  /// Change this value if you want to change the # of sensor reads 
   const int Check_times = 20;
-  int Moisture_Value, Moisture_Percentage;
+
+  int Moisture_Value[Check_times], Moisture_Percentage;
 
   for (int i = 0; i <= Check_times; i++) {
-    Moisture_Value += analogRead(Moisture_Sensor);
+    Moisture_Value.append(analogRead(Moisture_Sensor));
   }
   Moisture_Value /= Check_times;
   Moisture_Percentage = map(Moisture_Value, Air_Value, Water_Value, 0, 100);
