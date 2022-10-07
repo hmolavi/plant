@@ -7,11 +7,14 @@
 // Ports
 const int Water_Pump = 8;
 
+// 3 hour in milli S
+long int threeHours = 3*60*60*1000;
 
 // Functions
 void setup() {
     pinMode(Water_Pump, OUTPUT);
     digitalWrite(Water_Pump, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(3000);
 }
 
