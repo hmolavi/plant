@@ -32,8 +32,6 @@ void setup() {
 
 void loop() {
 
-
-
   digitalWrite(Water_Pump, HIGH);
   digitalWrite(LED_BUILTIN, HIGH);
   delay(5*1000);                  // Turns on for 5 second 
