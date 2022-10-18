@@ -19,7 +19,11 @@ const int Moisture_Sensor = A0;
 const int LED_Drysoil = 10;               // red LED
 const int LED_Fill_Water = 11;           // blue LED
 
-// Functions
+
+// Global Values
+bool dryState = false;
+
+// Core Functions 
 void setup() {
   pinMode(Water_Pump, OUTPUT);
   digitalWrite(Water_Pump, LOW);
@@ -27,6 +31,9 @@ void setup() {
 }
 
 void loop() {
+
+
+
   digitalWrite(Water_Pump, HIGH);
   digitalWrite(LED_BUILTIN, HIGH);
   delay(5*1000);                  // Turns on for 5 second 
@@ -36,8 +43,23 @@ void loop() {
   delay(threeHours);              // Turns on every 3 hours
 }
 
-void TurnWaterOn(){
-  return
+
+// Implemented Functions
+
+void waterValve(){
+  return nullptr;
+}
+
+void dryStateToggle(bool state){
+  
+  if (state){
+    digitalWrite(LED_Drysoil, HIGH);
+  }
+  else{
+    digitalWrite(LED_Drysoil, LOW);
+  }
+
+  dryState = state;
 }
 
 int Calculate_Moisture() {
