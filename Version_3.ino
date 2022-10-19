@@ -11,10 +11,12 @@
 //
 
 // Libraries
+/*
 #include <millisDelay.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+*/
 
 // Ports
 const int Water_Pump = 8;
@@ -23,9 +25,9 @@ const int LED_Drysoil = 10;               // red LED
 const int LED_Fill_Water = 11;           // blue LED
 
 // Global Constant values
-const int Air_Value = 620;                  // value when sensor is not in water
-const int Water_Value = 310;                // value when sensor is in the water
-const int Dry_Soil_Moisture_Percentage = 50;// what is interpreted as dry percentage
+const int AIR_VAL = 620;                  // value when sensor is not in water
+const int WATER_VAL = 310;                // value when sensor is in the water
+const int DRY_SOIL_PERCENTAGE = 50;// what is interpreted as dry percentage
 
 // Global Values
 bool dryState = false;
@@ -35,15 +37,20 @@ bool dryState = false;
 //  Core Functions   //
 ///////////////////////
 void setup() {
-  Serial.init(9600);
+  // Serial initialization 
+  Serial.begin(9600);
+  
+  // Pins 
   pinMode(Water_Pump, OUTPUT);
+  pinMode(LED_Drysoil, OUTPUT);
+  pinMode(LED_Fill_Water, OUTPUT);
+  pinMode(Moisture_Sensor, INPUT);
+
+  // Setting the relay off 
   digitalWrite(Water_Pump, LOW);
-  delay(3000);
 }
 
 void loop() {
-
-
 
   digitalWrite(Water_Pump, HIGH);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -51,7 +58,6 @@ void loop() {
   
   digitalWrite(Water_Pump, LOW);
   digitalWrite(LED_BUILTIN, LOW);
-  delay(threeHours);              // Turns on every 3 hours
 }
 
 //////////////////////////////
@@ -59,7 +65,12 @@ void loop() {
 //////////////////////////////
 
 // Serial Output
-void 
+void serialReport(int moisturePercentage, int moistureValue){
+  
+  String t_bckslsh = "\\", semicolon = ":", indent = "\t", t_moistureP = "\t\t Moisture%: ",t_moistureV = "\t Moisture Val: " ;
+  //Serial.print(year+t_bckslsh+month+t_bckslsh+day+ indent + Hour+semicolon+minuet + t_moistureP+moisturePercentage + t_moistureV+moistureValue);
+  Serial.println(indent + t_moistureP+moisturePercentage + t_moistureV+moistureValue);
+}
 
 // Turn on relay (turn on/off)
 void waterValve(bool state){
@@ -82,19 +93,8 @@ void dryStateToggle(bool state){
   dryState = state;
 }
 
-// qsort requires you to create a sort function
-int sort_desc(const void *cmp1, const void *cmp2){
-  // Need to cast the void * to int *
-  int a = *((int *)cmp1);
-  int b = *((int *)cmp2);
-  // The comparison
-  return a > b ? -1 : (a < b ? 1 : 0);
-  // A simpler, probably faster way:
-  //return b - a;
-}
-
 // Returns moisture percentage: p, value: v or both: b 
-int Calculate_Moisture(char a) {
+int calculateMoisture(char a) {
   
   const int Check_times = 20;
 
@@ -107,11 +107,11 @@ int Calculate_Moisture(char a) {
   int Moisture_Value_length = sizeof(Moisture_Value) / sizeof(Moisture_Value[0]);
   qsort(Moisture_Value, Moisture_Value_length, sizeof(Moisture_Value[0]), sort_desc);
 
-  int Moisture_Percentage = map(Moisture_Value[int(Check_times/2)], Air_Value, Water_Value, 0, 100);
+  int Moisture_Percentage = map(Moisture_Value[int(Check_times/2)], AIR_VAL, WATER_VAL, 0, 100);
   
   //Moisture_Percentage -= 10;      // cause of the power shortage from supplying lcd display
   
-  if (Moisture_Percentage <= Dry_Soil_Moisture_Percentage) {
+  if (Moisture_Percentage <= DRY_SOIL_PERCENTAGE) {
     dryStateToggle(true);
   }
   else {
@@ -127,3 +127,13 @@ int Calculate_Moisture(char a) {
   }
 }
 
+// qsort requires you to create a sort function
+int sort_desc(const void *cmp1, const void *cmp2){
+  // Need to cast the void * to int *
+  int a = *((int *)cmp1);
+  int b = *((int *)cmp2);
+  // The comparison
+  return a > b ? -1 : (a < b ? 1 : 0);
+  // A simpler, probably faster way:
+  //return b - a;
+}
