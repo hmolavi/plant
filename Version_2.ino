@@ -3,7 +3,7 @@
 //      Idea:   Turn the pump only when the moisture drops below a described level
 //              Waters the plant in 5 second intervals 
 
-/
+
 // Libraries
 #include <millisDelay.h>
 #include <Wire.h>
