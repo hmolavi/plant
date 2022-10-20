@@ -11,35 +11,39 @@
 //
 
 // Libraries
-/*
+
 #include <millisDelay.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <TimeLib.h>
+#include <DS1307RTC.h>
+#include <SD.h> 
+#include <SPI.h> 
+
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-*/
 
 // Ports
 const int Water_Pump = 8;
 const int Moisture_Sensor = A0;
-const int LED_Drysoil = 10;               // red LED
+const int LED_Drysoil = 10;               // red LED 10
 const int LED_Fill_Water = 11;           // blue LED
 
 // Global Constant values
+const char *MONTH_NAMES[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 const int AIR_VAL = 620;                  // value when sensor is not in water
 const int WATER_VAL = 310;                // value when sensor is in the water
 const int DRY_SOIL_PERCENTAGE = 50;// what is interpreted as dry percentage
+const char* filename = "time.txt";
 
 // Global Values
 bool dryState = false;
-
+tmElements_t tm;
+File file;
 
 ///////////////////////
 //  Core Functions   //
 ///////////////////////
 void setup() {
-  // Serial initialization 
-  Serial.begin(9600);
-  
   // Pins 
   pinMode(Water_Pump, OUTPUT);
   pinMode(LED_Drysoil, OUTPUT);
@@ -48,21 +52,113 @@ void setup() {
 
   // Setting the relay off 
   digitalWrite(Water_Pump, LOW);
+
+  Wire.begin();
+    
+  Serial.begin(9600);
+  while (!Serial) ; // wait for serial
+  
+  file = SD.open(filename, FILE_WRITE);
+  if (!SD.begin(10)) {
+    Serial.println("Error : Push the reset button");
+    while(true); 
+  }
+
+  // Takes care of all of time setting
+  setTime();
+
+  digitalWrite(LED_Drysoil, HIGH);
+  delay(2000);
+  digitalWrite(LED_Drysoil, LOW);
+
+  Serial.println("Smart Watering");
+  Serial.println("-------------------");
 }
 
 void loop() {
-
-  digitalWrite(Water_Pump, HIGH);
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(5*1000);                  // Turns on for 5 second 
   
-  digitalWrite(Water_Pump, LOW);
-  digitalWrite(LED_BUILTIN, LOW);
+  RTC.read(tm);
+  file.print(tm.Second);
+  Serial.println(tm.Second);
+  file.println();
+  file.flush();
+  digitalWrite(LED_Drysoil, HIGH);
+  
+  delay(500);                  // Turns on for 5 second 
+  
+  RTC.read(tm);
+  file.print(tm.Second);
+  Serial.println(tm.Second);
+  file.println();
+  file.flush();
+  digitalWrite(LED_Drysoil, LOW);
+
+  delay(500);                  // Turns on for 5 second 
+
 }
 
 //////////////////////////////
 //  Implemented Functions   //
 //////////////////////////////
+
+void setTime(){
+  bool parse=false;
+  bool config=false;
+
+  // get the date and time the compiler was run
+  if (getDate(__DATE__) && getTime(__TIME__)) {
+    parse = true;
+    // and configure the RTC with this info
+    if (RTC.write(tm)) {
+      config = true;
+    }
+  }
+
+  Serial.begin(9600);
+  while (!Serial) ; // wait for Arduino Serial Monitor
+  delay(200);
+  if (parse && config) {
+    Serial.print("DS1307 configured Time=");
+    Serial.print(__TIME__);
+    Serial.print(", Date=");
+    Serial.println(__DATE__);
+  } else if (parse) {
+    Serial.println("DS1307 Communication Error :-{");
+    Serial.println("Please check your circuitry");
+  } else {
+    Serial.print("Could not parse info from the compiler, Time=\"");
+    Serial.print(__TIME__);
+    Serial.print("\", Date=\"");
+    Serial.print(__DATE__);
+    Serial.println("\"");
+  }
+}
+
+bool getTime(const char *str){
+  int Hour, Min, Sec;
+
+  if (sscanf(str, "%d:%d:%d", &Hour, &Min, &Sec) != 3) return false;
+  tm.Hour = Hour;
+  tm.Minute = Min;
+  tm.Second = Sec;
+  return true;
+}
+
+bool getDate(const char *str){
+  char Month[12];
+  int Day, Year;
+  uint8_t monthIndex;
+
+  if (sscanf(str, "%s %d %d", Month, &Day, &Year) != 3) return false;
+  for (monthIndex = 0; monthIndex < 12; monthIndex++) {
+    if (strcmp(Month, MONTH_NAMES[monthIndex]) == 0) break;
+  }
+  if (monthIndex >= 12) return false;
+  tm.Day = Day;
+  tm.Month = monthIndex + 1;
+  tm.Year = CalendarYrToTm(Year);
+  return true;
+}
 
 // Serial Output
 void serialReport(int moisturePercentage, int moistureValue){
