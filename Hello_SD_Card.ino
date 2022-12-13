@@ -1,3 +1,6 @@
+//Sketch uses 10796 bytes (33%) of program storage space. Maximum is 32256 bytes.
+//Global variables use 969 bytes (47%) of dynamic memory, leaving 1079 bytes for local variables. Maximum is 2048 bytes.
+
 #include <SD.h>
 
 const int chipSelect = 10;
